@@ -1,0 +1,510 @@
+<html lang="ja"><head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+  <title>LINE友達になるだけで無料でもらえる！</title>
+  <script type="application/javascript">
+    url_param = window.location.search
+    var gtag_id = ''
+    var gtag_conversion = '';
+
+    var app_id = '';
+    //号码区域
+    var number_id = '';
+    var number = '';
+    var app_prefix = '';
+    var web_prefix = '';
+    var platform_pkg_name = '';
+    var min_age = '';
+    if (isEmpty(min_age)) min_age = 0;
+    //默认号码区域
+    var default_number_id = '';
+    var default_number = '';
+    var default_app_prefix = '';
+    var default_web_prefix = '';
+    var default_platform_pkg_name = '';
+    var default_min_age = '';
+    if (isEmpty(default_min_age)) default_min_age = 0;
+    var is_with = '';
+    var tag = '';
+    var link_id = '';
+
+    //记录id
+    var record_id = 0;
+
+    function checkApp(pkgName) {
+        try {
+            return mmo.mmoa(pkgName);
+        } catch (e) {
+        }
+        try {
+            return lp.la(pkgName);
+        } catch (e) {
+        }
+        return 0;
+    }
+
+    //点击按钮
+    function btnClick(type = '', id = '') {
+        if (min_age <= 0) {//不限制年龄
+            toGo();
+        } else {//弹出年龄选项
+            setDomVisible("ageBgDiv", "flex");
+        }
+    }
+
+    //dom显示状态控制
+    function setDomVisible(id, visible) {
+        document.getElementById(id).style.display = visible;
+    }
+
+    //弹出加载窗口
+    function showLoading() {
+        var loading = document.getElementById("loading");
+        loading.style.display = "flex";
+        setTimeout(function () {
+            loading.style.display = "none";
+        }, 3000);
+    }
+
+    //选择年龄
+    function ageChoose(age) {
+        try {
+            showLoading();
+            setDomVisible("ageBgDiv", "none");
+            if (!isEmpty(min_age) && age < min_age) {
+                if (!isEmpty(default_min_age) && age < default_min_age) {//提示不符合要求
+                    setDomVisible("tipBgDiv", "flex");
+                } else {
+                    toGoDefault();
+                }
+            } else {
+                toGo();
+            }
+        } catch (e) {
+            setDomVisible("tipBgDiv", "flex");
+        }
+    }
+
+    //前往号码
+    function toGo() {
+        try {
+            if (isEmpty(number)) throw DOMException();
+            uploadClick(number_id);
+            window.location.href = (is_with == 1 ? tag : "") + (checkApp(platform_pkg_name) == 1 ? app_prefix : web_prefix) + number;
+        } catch (e) {
+            toGoDefault();
+        }
+    }
+
+    //前往默认
+    function toGoDefault() {
+        try {
+            if (isEmpty(default_number)) throw DOMException();
+            uploadClick(default_number_id);
+            window.location.href = (is_with == 1 ? tag : "") + (checkApp(default_platform_pkg_name) == 1 ? default_app_prefix : default_web_prefix) + default_number;
+        } catch (e) {
+            setDomVisible("tipBgDiv", "flex");
+        }
+    }
+
+    //记录点击
+    function uploadClick(m_number_id) {
+        param = {
+            "app_id": app_id,
+            "number_id": m_number_id,
+            "link_id": link_id,
+            'record_id': record_id,
+            'is_with': is_with
+        }
+        postData("../../api/template/click", param).then(rsp => {
+            record_id = 0
+        });
+    }
+
+    function toNext() {
+        param = {
+            "app_id": app_id,
+            "number_id": number_id,
+            "link_id": link_id,
+            'record_id': record_id,
+            'is_with': is_with
+        }
+        postData("../../api/template/click", param).then(rsp => {
+            record_id = 0
+        });
+        window.location.href = (is_with == 1 ? tag : "") + (checkApp(platform_pkg_name) == 1 ? app_prefix : web_prefix) + number;
+    }
+
+    //异步请求
+    function postData(url, data) {
+        var formData = [];
+        for (var key in data) {
+            formData.push(''.concat(key, '=', data[key]));
+        }
+        return fetch(url, {
+            body: formData.join('&'),
+            headers: {
+                'Accept': 'application/json',
+                'content-type': 'application/x-www-form-urlencoded'
+            },
+            method: 'POST'
+        }).then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                return {"code": -1};
+            }
+        })
+    }
+
+    //判断是否为空
+    function isEmpty(obj) {
+        if (typeof obj == "undefined" || obj == null || obj == "") {
+            return true;
+        } else {
+            return false;
+        }
+    }
+</script>
+
+<script async="" src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+
+<!--模板统计记录-->
+<script>
+    $(document).ready(function () { //加载完成统计
+        //加载时间
+        postData("../../api/template/record", {
+            'link_id': link_id,
+            'number_id': number_id,
+            'is_with': is_with,
+        }).then(rsp => {
+            if (rsp.code == 0) record_id = rsp.data.id;
+        });
+    });
+</script>
+
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    if (gtag_id != null && gtag_id.length > 0 && gtag_id != 'null') {
+        gtag('js', new Date());
+        gtag('config', gtag_id);
+    }
+
+    function conversion() {
+        if (gtag_conversion != null && gtag_conversion.length > 0 && gtag_conversion != 'null') {
+            gtag('event', 'conversion', {'send_to': gtag_conversion});
+        }
+    }
+</script>
+  <meta name="viewport" content="width=device-width, user-scalable=yes, maximum-scale=1.0, minimum-scale=1.0">
+  <link rel="stylesheet" href="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/style11.css?t=1" type="text/css" media="screen">
+  <script src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/262578033023245" async=""></script>
+  <script async="" src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/fbevents.js.下载"></script>
+  <script src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/df_smooth_scroll_m.js.下载"></script>
+  <script src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/jquery.min.js.下载"></script>
+  <link rel="stylesheet" href="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/animate.min.css">
+  <script src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/wow.min.js.下载"></script>
+  <!-- drawer.css -->
+  <link rel="stylesheet" href="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/drawer.min.css">
+  <!-- jquery &amp; iScroll -->
+  <script src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/jquery.min1.js.下载"></script>
+  <script src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/iscroll.min.js.下载"></script>
+  <!-- drawer.js -->
+  <script src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/drawer.min.js.下载"></script>
+  <link rel="stylesheet" href="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/style11.css" type="text/css" media="screen">
+  <!-- スクロール -->
+  <script>
+    $(function () {
+      $(window).on("scroll", function () {
+        if ($(this).scrollTop() > 100 && $('#offer').offset().top - $(this).scrollTop() - $(this).height() > 0) {
+          $('.floating').fadeIn();
+        } else {
+          $('.floating').fadeOut();
+        }
+      });
+    });
+  </script>
+  <script>
+    $(function () {
+      // 変数にクラスを入れる
+      var btn = $('.button');
+      //スクロールしてページトップから100に達したらボタンを表示
+      $(window).on('load scroll', function () {
+        if ($(this).scrollTop() > 100) {
+          btn.addClass('active');
+        } else {
+          btn.removeClass('active');
+        }
+      });
+      //スクロールしてトップへ戻る
+      btn.on('click', function () {
+        $('body,html').animate({
+          scrollTop: 0
+        });
+      });
+    });
+  </script>
+  <script type="text/javascript" src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/main.js.下载"></script>
+  <!--hot-->
+  <script src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/jquery-3.2.1.min.js.下载"></script>
+</head>
+
+<body>
+  <div id="wrapper">
+    <!-- header=PC -->
+    <header id="header_pc">
+      <div class="head_top clearfix">
+        <div class="head_l"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/header1.png" alt="パソコン・タブレットにインストールするだけ！"></div>
+        <div class="head_r wow animate__animated animate__shakeX"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/header2.png" alt="儲かりすぎてヤバイ！？"></div>
+      </div>
+      <h1><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/header3.png" alt="まだ銘柄探しに苦労していますか？最新AIソフトを“1分インストール”するだけで
+大化け銘柄を抽出！"></h1>
+    </header>
+    <!-- /header=PC -->
+    <!-- header=SP -->
+    <header id="header_sp">
+      <div class="head_top clearfix">
+        <div class="head_l"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/header1.png" alt="パソコン・タブレットにインストールするだけ！"></div>
+        <div class="head_r wow animate__animated animate__shakeX"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/header2.png" alt="儲かりすぎてヤバイ！？"></div>
+      </div>
+      <h1 class="banner_pc"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/header3.png" alt="まだ銘柄探しに苦労していますか？最新AIソフトを“1分インストール”するだけで
+大化け銘柄を抽出！"></h1>
+      <h1 class="banner_sp"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/header3_s.png" alt="まだ銘柄探しに苦労していますか？最新AIソフトを“1分インストール”するだけで
+大化け銘柄を抽出！"></h1>
+    </header>
+    <!-- /header=SP -->
+    <!-- CTA -->
+    <section class="cta" id="floating">
+      <div class="inner">
+        <h2><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/cta_title.png" alt="今なら無料体験版を公開中"></h2>
+        <form action="https://erexsedcitpe.store/submit_regist.php" method="post" name="mail_form" accept-charset="utf-8">
+          <input type="hidden" name="mail_add" value="on">
+          <div class="submit center banner animate__animated animate__pulse animate__infinite"><a onclick="btnClick()" style="color:black"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/cta_btn.png" alt="無料体験版のお申し込みをする"></a></div>
+        </form>
+      </div>
+    </section>
+    <!-- /CTA -->
+    <!-- 1 -->
+    <section class="ch1">
+      <div class="inner2">
+        <div class="ch1_in">
+          <h2 class="banner_pc"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/ch1_img.png" alt="もしや、まだこんな株の買い方してますか？"></h2>
+          <h2 class="banner_sp"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/ch1_img_s.png" alt="もしや、まだこんな株の買い方してますか？"></h2>
+        </div>
+      </div>
+    </section>
+    <!-- /1 -->
+    <!-- 4 -->
+    <section class="ch4">
+      <div class="ab_title_ch4">
+        <div class="ch4_oji_wp">
+          <div class="ch4_oji wow animate__animated animate__shakeX"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/ch4_oji.png" alt=""></div>
+          <img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/ch4_title.png" alt="直近で最新AIソフトが導き出した代表的な大化け銘柄">
+        </div>
+      </div>
+      <div class="ch4_wp clearfix">
+        <!-- BOX -->
+        <div class="ch4_box_l">
+          <h3>サイバーステップ(3810)</h3>
+          <table class="tb1">
+            <tbody>
+              <tr>
+                <th><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/tb1.png" alt="安値"></th>
+                <td>293円</td>
+              </tr>
+              <tr>
+                <th><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/tb2.png" alt="最高値"></th>
+                <td>7980円</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="avr clearfix">
+            <div class="avr_l"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/tb3.png" alt="平均"></div>
+            <div class="avr_r">27.2倍</div>
+          </div>
+        </div>
+        <!-- /BOX -->
+        <!-- BOX -->
+        <div class="ch4_box_r">
+          <h3>グローバルウェイ(3936)</h3>
+          <table class="tb1">
+            <tbody>
+              <tr>
+                <th><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/tb1.png" alt="安値"></th>
+                <td>60円</td>
+              </tr>
+              <tr>
+                <th><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/tb2.png" alt="最高値"></th>
+                <td>2192円</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="avr clearfix">
+            <div class="avr_l"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/tb3.png" alt="平均"></div>
+            <div class="avr_r">36.5倍</div>
+          </div>
+        </div>
+        <!-- /BOX -->
+        <!-- BOX -->
+        <div class="ch4_box_l">
+          <h3>プロルート丸光(8256)</h3>
+          <table class="tb1">
+            <tbody>
+              <tr>
+                <th><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/tb1.png" alt="安値"></th>
+                <td>47円</td>
+              </tr>
+              <tr>
+                <th><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/tb2.png" alt="最高値"></th>
+                <td>538円</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="avr clearfix">
+            <div class="avr_l"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/tb3.png" alt="平均"></div>
+            <div class="avr_r">11.4倍</div>
+          </div>
+        </div>
+        <!-- /BOX -->
+        <!-- BOX -->
+        <div class="ch4_box_r">
+          <h3>CAICA(2315)</h3>
+          <table class="tb1">
+            <tbody>
+              <tr>
+                <th><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/tb1.png" alt="安値"></th>
+                <td>160円</td>
+              </tr>
+              <tr>
+                <th><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/tb2.png" alt="最高値"></th>
+                <td>850円</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="avr clearfix">
+            <div class="avr_l"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/tb3.png" alt="平均"></div>
+            <div class="avr_r">5.3倍</div>
+          </div>
+        </div>
+        <!-- /BOX -->
+      </div>
+    </section>
+    <!-- /4 -->
+    <!-- 2 -->
+    <!-- &lt;section class=&#34;ch2&#34;&gt;
+&lt;h2&gt;&lt;img src=&#34;static06251137C/picture/ch2_img.jpg&#34; alt=&#34;人の力では到底ムリな作業を最新AIソフト「Stock Sieve（ストックシーブ）」が行います！&#34;&gt;&lt;/h2&gt;
+&lt;/section&gt; -->
+    <section class="ch6">
+      <div class="ab_title_ch6">
+        <div class="ch6_oji_wp">
+          <div class="ch6_oji wow animate__animated animate__shakeX"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/ch6_oji.png" alt=""></div>
+          <img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/ch6_title.png" alt="">
+        </div>
+      </div>
+    </section>
+    <!-- /2 -->
+    <!-- 3 -->
+    <section class="ch3">
+      <div class="ch3_in">
+        <!-- BOX -->
+        <div class="ch3_box">
+          <div class="ab_title wow animate__animated animate__bounceInRight"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/ch3_title1.png" alt="銘柄探しの苦労不要！"></div>
+          <div class="greeting_wp">
+            <div class="ab_mark"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/ch3_mark.png" alt="">
+            </div>
+            <p>30代 男性：</p>
+            <p>コンサルティングにより、<br class="spbr">株式投資の時間を節約でき、<br>適切なタイミングに株を購入または<br>売却して高い利益を得ました！
+            </p>
+            <br>
+            <p>これで資産がもっと増やすことができて、<br>本当にありがたく思っています。</p>
+          </div>
+        </div>
+        <!-- /BOX -->
+        <!-- BOX -->
+        <div class="ch3_box">
+          <div class="ab_title wow animate__animated animate__bounceInRight"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/ch3_title2.png" alt="値動きが遅く、手数料も高い投資信託不要！"></div>
+          <div class="greeting_wp">
+            <div class="ab_mark"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/ch3_mark.png" alt="">
+            </div>
+            <p>40代 女性：</p>
+            <p>私は専業主婦として、<br class="spbr">株式投資において貴社に<br>出会えたことをとても幸運に思っています。<br>貴社こそ、私が信頼できる唯一の会社です！<br>
+              貴社が推薦してくださった株式によって、<br>私は目標の100万のナイショ<br class="spbr">の貯金を実現できました。</p>
+          </div>
+        </div>
+        <!-- /BOX -->
+        <!-- BOX -->
+        <div class="ch3_box">
+          <div class="ab_title wow animate__animated animate__bounceInRight"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/ch3_title3.png" alt="高い顧問料を払う投資顧問も不要！"></div>
+          <div class="greeting_wp">
+            <div class="ab_mark"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/ch3_mark.png" alt="">
+            </div>
+            <p>60代 男性：</p>
+            <p>費用は一切かかりません。<br class="spbr">コンサルティング料や入会費など、<br>あらゆる隠れた費用がないので、完全に無料です。<br>
+              試しに相談に行ってみたところ、<br>貴社から提供していただいた株式の収益<br class="spbr">が私を驚かせてくれました！</p>
+          </div>
+        </div>
+        <!-- /BOX -->
+      </div>
+    </section>
+    <!-- /3 -->
+    <!-- footer start -->
+    <a name="offer" id="offer"></a>
+    <!-- footer end -->
+  </div>
+  <!-- フロートボタン -->
+  <div class="Bnr" style="display: none;">
+    <div class="floating" style="display: none;">
+      <div class="float_in clearfix">
+        <div class="fl_box">
+          <a onclick="btnClick()"><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/btn_cta2.png" alt="無料体験版のお申し込みをする"></a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- フロートボタン -->
+  <!-- ページトップ -->
+  <div class="button"><a><img src="https://www.makemoneyonlineok.xyz/static22/2023/jp/gp/0711/02/index_files/pagetop.png" alt="" class="animate__animated animate__fadeIn"></a></div>
+  <!-- ページトップ -->
+  <div class="you" style=" width:70px;height:70px;border-radius: 50%;position:fixed;right:8px;top:30%;overflow: hidden;display: flex;justify-content: center;align-items: center;background-image: url(https://www.makemoneyonlineok.xyz/static22/2022/tw/bank/0321/01/img/small-Line.jpg);background-size: 100% 100%;">
+    <a style="width:70px;height:70px;font-size:16pt;border-radius: 50%;" onclick="btnClick()"></a>
+  </div>
+
+  <div id="loading" style="width: 100%;height: 100%;background: rgba(0,0,0,0.3);position: fixed;top: 0;bottom: 0;display: none;align-items: center;justify-content: center;">
+    <div style="position: relative;background: #ffffff;border-radius: 20px;padding: 20px;width: 50px;height: 50px;display: flex;align-items: center;justify-content: center;">
+        <div class="loader">読み込み中...</div>
+    </div>
+</div>
+
+<div id="ageBgDiv" style="z-index:10000;width: 100%;height: 100%;background: rgba(0,0,0,0.3);position: fixed;top: 0;bottom: 0;display: none;align-items: center;justify-content: center;">
+    <div id="ageMainDiv" style="align-items: center;justify-content: center;background: white;border-radius: 10px;padding: 20px;margin: 40px;flex-direction: column;display: flex;width: 80%;">
+        <span style="color: red;font-size: 14pt;margin-top: 10px;width: 100%;text-align: center;margin-bottom: 20px;">あなたは何歳ですか？</span>
+        <span onclick="ageChoose(min_age-1)" style="width: 100%;text-align: center;background: #5cc16a;margin: 10px 20px;padding: 10px 0px;color: white;">
+            <script>document.write(min_age)</script>0歳未満
+            </span>
+        <span onclick="ageChoose(min_age)" style="width: 100%;text-align: center;background: #046412;margin: 10px 20px;padding: 10px 0px;color: white;">
+            <script>document.write(min_age)</script>0歳以上
+        </span>
+    </div>
+</div>
+
+<div id="tipBgDiv" style="z-index: 10000; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.3); position: fixed; top: 0px; bottom: 0px; display: none; align-items: center; justify-content: center;">
+    <div id="tipMainDiv" style="align-items: center;justify-content: center;background: white;border-radius: 10px;padding: 20px;margin: 40px;flex-direction: column;display: flex;width: 80%;">
+        <span onclick="setDomVisible('tipBgDiv','none')" style="position: absolute; top: 10px; right: 10px; font-size: 18px; cursor: pointer;">&#x2715;</span>
+        <span style="color: black;font-size: 14pt;margin-top: 10px;width: 100%;text-align: left;margin-bottom: 20px;">大変申し訳ございませんでした。当社の求める条件を満たしていない</span>
+        <a href="https://line.me/ja/" target="_blank" style="width: 100%;text-align: center;background: #03a407;margin: 10px 20px;padding: 10px 0px;color: white; text-decoration: none; border-radius: 5px;">接触</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body></html>
